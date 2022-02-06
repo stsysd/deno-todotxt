@@ -2,14 +2,15 @@ import { Input } from "https://deno.land/x/cliffy@v0.20.1/prompt/mod.ts";
 import { readLines } from "https://deno.land/std@0.115.1/io/mod.ts";
 import { Todo } from "./todo.ts";
 import {
-  Command,
-  Cmd,
-  Opt,
-  Rest,
   Arg,
+  Cmd,
+  Command,
+  Flag,
   Help,
   Name,
-} from "https://raw.githubusercontent.com/stsysd/classopt/main/mod.ts";
+  Opt,
+  Rest,
+} from "https://raw.githubusercontent.com/stsysd/classopt/v0.1.0/mod.ts";
 
 type Context = { path: string };
 
@@ -18,16 +19,16 @@ class Add extends Command<Context> {
   @Arg({ optional: true })
   description = "";
 
-  @Opt({ long: false, short: "A" })
+  @Flag({ long: false, short: "A" })
   priorityA = false;
 
-  @Opt({ long: false, short: "B" })
+  @Flag({ long: false, short: "B" })
   priorityB = false;
 
-  @Opt({ long: false, short: "C" })
+  @Flag({ long: false, short: "C" })
   priorityC = false;
 
-  @Opt({ long: false, short: "D" })
+  @Flag({ long: false, short: "D" })
   priorityD = false;
 
   @Opt({ type: "string", about: "priority" })
@@ -91,10 +92,10 @@ class List extends Command<Context> {
   @Opt({ type: "string", multiple: true })
   filter!: string[];
 
-  @Opt({ about: "print todos with index number" })
+  @Flag({ about: "print todos with index number", short: "i" })
   index = false;
 
-  @Opt({ short: "A", about: "print todos including completed" })
+  @Flag({ short: "A", about: "print todos including completed" })
   all = false;
 
   async execute(ctxt: Context) {
