@@ -150,9 +150,18 @@ class Complete extends Command<Context> {
 
   async execute(ctxt: Context) {
     const todos = await Todo.load(await ctxt.findTodofile());
-    if (this.inputs.length) {
+    if (this.inputs.length === 0) {
+      const pat = /^(\d+):/;
       for await (const line of readLines(Deno.stdin)) {
-        this.inputs.push(line.trimEnd());
+        const mat = pat.exec(line);
+        if (mat == null) {
+          console.warn(
+            `%cinvalid input form stdin: '${line}'`,
+            "color: orange",
+          );
+          continue;
+        }
+        this.inputs.push(mat[1]);
       }
     }
     for (const input of this.inputs) {
