@@ -82,6 +82,8 @@ class Add extends Command<Context> {
 
 // deno-lint-ignore no-explicit-any
 function compare(l: any, r: any): number {
+  if (l == null) return -1;
+  if (r == null) return 1;
   if (l < r) return -1;
   if (l > r) return 1;
   return 0;
