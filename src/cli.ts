@@ -10,6 +10,7 @@ import {
   Name,
   Opt,
   Rest,
+  Version,
 } from "https://raw.githubusercontent.com/stsysd/classopt/v0.1.0/mod.ts";
 
 type Context = { findTodofile(): Promise<string> };
@@ -188,6 +189,7 @@ class Init extends Command {
 }
 
 @Name("Todo")
+@Version("v0.1.0")
 @Help("Todo.txt Manager")
 class Root extends Command {
   @Cmd(Add, List, Complete, Path, Init)
