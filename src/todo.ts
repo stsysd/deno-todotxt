@@ -1,10 +1,10 @@
 import { format, parse } from "https://deno.land/std@0.115.1/datetime/mod.ts";
 import {
+  dim,
   green,
   red,
-  yellow,
-  dim,
   underline,
+  yellow,
 } from "https://deno.land/std@0.115.1/fmt/colors.ts";
 
 const DATE_FMT = "yyyy-MM-dd";
@@ -30,7 +30,7 @@ export class Todo {
       priority: string;
       completionDate: Date;
       creationDate: Date;
-    }> = {}
+    }> = {},
   ) {
     this.description = description;
     for (const [k, v] of Object.entries(opts)) {
@@ -41,7 +41,7 @@ export class Todo {
 
   get projects(): string[] {
     const projects = [...this.description.matchAll(PROJECT_PAT)].map(
-      (mat) => mat.groups!.tag
+      (mat) => mat.groups!.tag,
     );
     // @ts-ignore: memorize
     return delete this.projects, (this.projects = projects);
@@ -49,7 +49,7 @@ export class Todo {
 
   get contexts(): string[] {
     const contexts = [...this.description.matchAll(CONTEXT_PAT)].map(
-      (mat) => mat.groups!.tag
+      (mat) => mat.groups!.tag,
     );
     // @ts-ignore: memorize
     return delete this.contexts, (this.contexts = contexts);
@@ -60,7 +60,7 @@ export class Todo {
       [...this.description.matchAll(METADATA_PAT)].map((mat) => [
         mat.groups!.key,
         mat.groups!.val,
-      ])
+      ]),
     );
     // @ts-ignore: memorize
     return delete this.metadata, (this.metadata = metadata);
@@ -113,7 +113,7 @@ export class Todo {
   static async save(fname: string, todos: Todo[]): Promise<void> {
     await Deno.writeTextFile(
       fname,
-      todos.map((todo) => todo.serialize() + "\n").join("")
+      todos.map((todo) => todo.serialize() + "\n").join(""),
     );
   }
   static async append(fname: string, todo: Todo): Promise<void> {

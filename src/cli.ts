@@ -114,7 +114,8 @@ class List extends Command<Context> {
       }
       todosWithIndex.sort(
         ([_i, l], [_j, r]) =>
-          compare(l.completion, r.completion) || compare(l.priority, r.priority)
+          compare(l.completion, r.completion) ||
+          compare(l.priority, r.priority),
       );
       if (!this.index) {
         todosWithIndex.forEach(([_, todo]) =>
@@ -125,7 +126,7 @@ class List extends Command<Context> {
         todosWithIndex.forEach(([i, todo]) => {
           const idx = `${i}`.padStart(len, "0");
           console.log(
-            `${idx}: ` + todo.serialize({ color: true, align: true })
+            `${idx}: ` + todo.serialize({ color: true, align: true }),
           );
         });
       }
