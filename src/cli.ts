@@ -170,6 +170,7 @@ class Complete extends Command<Context> {
       todo.completionDate = new Date();
       console.log(todo.serialize({ color: true, align: true }));
     }
+    await Todo.save(await ctxt.findTodofile(), todos);
   }
 }
 
