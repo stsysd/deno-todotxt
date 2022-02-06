@@ -12,7 +12,7 @@ import {
   Rest,
 } from "https://raw.githubusercontent.com/stsysd/classopt/v0.1.0/mod.ts";
 
-type Context = { path: string };
+type Context = { findTodofile(): Promise<string> };
 
 @Help("Add Todo")
 class Add extends Command<Context> {
@@ -59,7 +59,7 @@ class Add extends Command<Context> {
     } else {
       todo = await this.interactive();
     }
-    Todo.append(ctxt.path, todo);
+    Todo.append(await ctxt.findTodofile(), todo);
     console.log("Add Todo:");
     console.log(todo.serialize({ color: true }));
   }
@@ -102,7 +102,7 @@ class List extends Command<Context> {
 
   async execute(ctxt: Context) {
     try {
-      const todos = await Todo.load(ctxt.path);
+      const todos = await Todo.load(await ctxt.findTodofile());
       let todosWithIndex = [...todos.entries()];
       if (!this.all) {
         todosWithIndex = todosWithIndex.filter(([_, todo]) => !todo.completion);
@@ -140,59 +140,92 @@ class List extends Command<Context> {
   }
 }
 
-@Help("Complete Todo")
+@Help("Make Todo done")
 @Name("done")
 class Complete extends Command<Context> {
   @Rest()
-  indexes: string[] = [];
+  inputs: string[] = [];
 
   async execute(ctxt: Context) {
-    const todos = await Todo.load(ctxt.path);
-    if (this.indexes.length) {
-      for (const line of this.indexes) {
-        const ix = parseInt(line);
-        if (Number.isNaN(ix)) continue;
-        const todo = todos[ix];
-        if (todo == null) continue;
-        todo.completion = true;
-        todo.completionDate = new Date();
-      }
-    } else {
+    const todos = await Todo.load(await ctxt.findTodofile());
+    if (this.inputs.length) {
       for await (const line of readLines(Deno.stdin)) {
-        const ix = parseInt(line);
-        if (Number.isNaN(ix)) continue;
-        const todo = todos[ix];
-        if (todo == null) continue;
-        todo.completion = true;
-        todo.completionDate = new Date();
+        this.inputs.push(line.trimEnd());
       }
     }
-    await Todo.save(ctxt.path, todos);
+    for (const input of this.inputs) {
+      const ix = parseInt(input);
+      if (Number.isNaN(ix)) {
+        console.warn(`%c'${input}' is not number`, "color: orange");
+        continue;
+      }
+      const todo = todos[ix];
+      if (todo == null) {
+        console.warn(`%cindex '${ix}' is out of range`, "color: orange");
+        continue;
+      }
+      todo.completion = true;
+      todo.completionDate = new Date();
+      console.log(todo.serialize({ color: true, align: true }));
+    }
   }
 }
 
-function homeDir(): string {
-  return Deno.env.get("HOME") ?? Deno.env.get("USERPROFILE") ?? "";
+@Help("Print Path to Todofile")
+@Name("path")
+class Path extends Command<Context> {
+  async execute(ctxt: Context) {
+    console.log(await ctxt.findTodofile());
+  }
+}
+
+@Help("Init Todofile")
+@Name("init")
+class Init extends Command {
+  async execute() {
+    await Deno.create("./.todo.txt");
+  }
 }
 
 @Name("Todo")
 @Help("Todo.txt Manager")
 class Root extends Command {
-  @Cmd(Add, List, Complete)
+  @Cmd(Add, List, Complete, Path, Init)
   command?: Command<Context>;
 
-  @Opt({ type: "string", short: "P", about: "Path to file" })
-  dir = homeDir();
+  @Opt({ type: "string", short: "C", long: false, about: "Path to todofile" })
+  dir = ".";
 
-  get path(): string {
-    return `${this.dir || "."}/.todo.txt`;
+  async findTodofile(): Promise<string> {
+    while (true) {
+      const cwd = await Deno.realPath(".");
+      if (cwd === "/") {
+        throw new Error(`todofile not found`);
+      }
+      for await (const e of Deno.readDir(".")) {
+        if (e.name === ".todo.txt") {
+          const path = `${cwd}/${e.name}`;
+          if (!e.isFile) {
+            throw new Error(`invalid todofile: ${path}`);
+          }
+          return path;
+        }
+      }
+      Deno.chdir("..");
+    }
   }
 
   async execute() {
-    if (this.command) {
-      return await this.command.execute(this);
+    try {
+      await Deno.chdir(this.dir);
+      if (this.command) {
+        return await this.command.execute(this);
+      }
+      console.log(this.help());
+    } catch (e) {
+      console.error(`%c${e}`, "color: red");
+      Deno.exit(1);
     }
-    console.log(this.help());
   }
 }
 
