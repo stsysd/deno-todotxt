@@ -1,5 +1,6 @@
 import { Input } from "https://deno.land/x/cliffy@v0.20.1/prompt/mod.ts";
 import { readLines } from "https://deno.land/std@0.115.1/io/mod.ts";
+import { ensureFile } from "https://deno.land/std@0.125.0/fs/mod.ts";
 import { Todo } from "./todo.ts";
 import {
   Arg,
@@ -184,7 +185,7 @@ class Path extends Command<Context> {
 @Name("init")
 class Init extends Command {
   async execute() {
-    await Deno.create("./.todo.txt");
+    await ensureFile("./.todo.txt");
   }
 }
 
