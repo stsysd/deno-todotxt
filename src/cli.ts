@@ -200,7 +200,7 @@ class Init extends Command {
 }
 
 @Name("Todo")
-@Version("v0.1.0")
+@Version("v0.1.1")
 @Help("Todo.txt Manager")
 class Root extends Command {
   @Cmd(Add, List, Complete, Path, Init)
