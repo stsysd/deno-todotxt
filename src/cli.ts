@@ -85,6 +85,7 @@ class Add extends Command<Context> {
 
 // deno-lint-ignore no-explicit-any
 function compare(l: any, r: any): number {
+  if (l === r) return 0;
   if (l == null) return -1;
   if (r == null) return 1;
   if (l < r) return -1;
@@ -115,9 +116,11 @@ class List extends Command<Context> {
       );
     }
     todosWithIndex.sort(
-      ([_i, l], [_j, r]) =>
+      ([i, l], [j, r]) =>
         compare(l.completion, r.completion) ||
-        compare(l.priority, r.priority),
+        compare(l.priority, r.priority) ||
+        compare(l.creationDate, r.creationDate) ||
+        compare(i, j),
     );
     if (!this.index) {
       todosWithIndex.forEach(([_, todo]) =>
