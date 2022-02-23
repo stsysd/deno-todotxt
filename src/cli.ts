@@ -2,6 +2,7 @@ import { Input } from "https://deno.land/x/cliffy@v0.20.1/prompt/mod.ts";
 import { readLines } from "https://deno.land/std@0.115.1/io/mod.ts";
 import { ensureFile } from "https://deno.land/std@0.125.0/fs/mod.ts";
 import { Todo } from "./todo.ts";
+import meta from "../meta.json" assert { type: "json" };
 import {
   Arg,
   Cmd,
@@ -199,8 +200,8 @@ class Init extends Command {
   }
 }
 
-@Name("Todo")
-@Version("v0.1.1")
+@Name(meta.name)
+@Version(meta.version)
 @Help("Todo.txt Manager")
 class Root extends Command {
   @Cmd(Add, List, Complete, Path, Init)
