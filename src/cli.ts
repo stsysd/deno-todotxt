@@ -104,41 +104,33 @@ class List extends Command<Context> {
   all = false;
 
   async execute(ctxt: Context) {
-    try {
-      const todos = await Todo.load(await ctxt.findTodofile());
-      let todosWithIndex = [...todos.entries()];
-      if (!this.all) {
-        todosWithIndex = todosWithIndex.filter(([_, todo]) => !todo.completion);
-      }
-      if (this.filter.length > 0) {
-        todosWithIndex = todosWithIndex.filter(([_, todo]) =>
-          this.filter.some((f) => todo.description.includes(f))
-        );
-      }
-      todosWithIndex.sort(
-        ([_i, l], [_j, r]) =>
-          compare(l.completion, r.completion) ||
-          compare(l.priority, r.priority),
+    const todos = await Todo.load(await ctxt.findTodofile());
+    let todosWithIndex = [...todos.entries()];
+    if (!this.all) {
+      todosWithIndex = todosWithIndex.filter(([_, todo]) => !todo.completion);
+    }
+    if (this.filter.length > 0) {
+      todosWithIndex = todosWithIndex.filter(([_, todo]) =>
+        this.filter.some((f) => todo.description.includes(f))
       );
-      if (!this.index) {
-        todosWithIndex.forEach(([_, todo]) =>
-          console.log(todo.serialize({ color: true, align: true }))
+    }
+    todosWithIndex.sort(
+      ([_i, l], [_j, r]) =>
+        compare(l.completion, r.completion) ||
+        compare(l.priority, r.priority),
+    );
+    if (!this.index) {
+      todosWithIndex.forEach(([_, todo]) =>
+        console.log(todo.serialize({ color: true, align: true }))
+      );
+    } else {
+      const len = Math.floor(Math.log10(todos.length));
+      todosWithIndex.forEach(([i, todo]) => {
+        const idx = `${i}`.padStart(len, "0");
+        console.log(
+          `${idx}: ` + todo.serialize({ color: true, align: true }),
         );
-      } else {
-        const len = Math.floor(Math.log10(todos.length));
-        todosWithIndex.forEach(([i, todo]) => {
-          const idx = `${i}`.padStart(len, "0");
-          console.log(
-            `${idx}: ` + todo.serialize({ color: true, align: true }),
-          );
-        });
-      }
-    } catch (e) {
-      if (e instanceof Deno.errors.NotFound) {
-        console.info(e.message);
-        Deno.exit(1);
-      }
-      throw e;
+      });
     }
   }
 }
@@ -196,7 +188,9 @@ class Path extends Command<Context> {
 @Name("init")
 class Init extends Command {
   async execute() {
-    await ensureFile("./.todo.txt");
+    await ensureFile("./.todo/todo.txt");
+    await ensureFile("./.todo/.gitignore");
+    await Deno.writeTextFile("./.todo/.gitignore", "*\n");
   }
 }
 
@@ -213,17 +207,17 @@ class Root extends Command {
   async findTodofile(): Promise<string> {
     while (true) {
       const cwd = await Deno.realPath(".");
-      if (cwd === "/") {
-        throw new Error(`todofile not found`);
-      }
       for await (const e of Deno.readDir(".")) {
-        if (e.name === ".todo.txt") {
-          const path = `${cwd}/${e.name}`;
-          if (!e.isFile) {
-            throw new Error(`invalid todofile: ${path}`);
+        if (e.name === ".todo") {
+          if (!e.isDirectory) {
+            throw new Error(`'.todo' is not direcotry: ${cwd}/${e.name}`);
           }
+          const path = `${cwd}/${e.name}/todo.txt`;
           return path;
         }
+      }
+      if (cwd === "/") {
+        throw new Error(`todofile not found`);
       }
       Deno.chdir("..");
     }
