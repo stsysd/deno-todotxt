@@ -147,7 +147,7 @@ class Complete extends Command<Context> {
   async execute(ctxt: Context) {
     const todos = await Todo.load(await ctxt.findTodofile());
     if (this.inputs.length === 0) {
-      const pat = /^(\d+):/;
+      const pat = /^(\d+):|^(\d+)$/;
       for await (const line of readLines(Deno.stdin)) {
         const mat = pat.exec(line);
         if (mat == null) {
@@ -157,7 +157,7 @@ class Complete extends Command<Context> {
           );
           continue;
         }
-        this.inputs.push(mat[1]);
+        this.inputs.push(mat[1] ?? mat[2]);
       }
     }
     for (const input of this.inputs) {
