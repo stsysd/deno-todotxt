@@ -127,7 +127,7 @@ class List extends Command<Context> {
         console.log(todo.serialize({ color: true, align: true }))
       );
     } else {
-      const len = Math.floor(Math.log10(todos.length));
+      const len = Math.floor(Math.log10(todos.length)) + 1;
       todosWithIndex.forEach(([i, todo]) => {
         const idx = `${i}`.padStart(len, "0");
         console.log(
